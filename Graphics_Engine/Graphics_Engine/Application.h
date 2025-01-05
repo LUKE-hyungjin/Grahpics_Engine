@@ -3,23 +3,17 @@
 #include <algorithm>
 #include <directxtk/SimpleMath.h>
 #include <iostream>
-#include <memory>
 #include <vector>
+#include <memory>
 
 #include "Graphics.h"
+#include "MeshGenerator.h"
+#include "Mesh.h"
 
 namespace luke
 {
-
-
     using DirectX::SimpleMath::Matrix;
     using DirectX::SimpleMath::Vector3;
-
-    struct Vertex
-    {
-        Vector3 position;
-        Vector3 color;
-    };
 
     //struct ModelViewProjectionConstantBuffer
     //{
@@ -42,10 +36,7 @@ namespace luke
         ComPtr<ID3D11VertexShader> m_colorVertexShader;
         ComPtr<ID3D11PixelShader> m_colorPixelShader;
         ComPtr<ID3D11InputLayout> m_colorInputLayout;
-
-        ComPtr<ID3D11Buffer> m_vertexBuffer;
-        ComPtr<ID3D11Buffer> m_indexBuffer;
-        ComPtr<ID3D11Buffer> m_constantBuffer;
+        std::shared_ptr<Mesh> m_mesh;
         UINT m_indexCount;
 
         //ModelViewProjectionConstantBuffer m_constantBufferData;

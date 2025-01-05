@@ -1,5 +1,6 @@
-﻿#include "Application.h"
-
+﻿
+#include "Application.h"
+#include "MeshGenerator.h"
 #include <tuple>
 #include <vector>
 
@@ -7,41 +8,6 @@ namespace luke
 {
 
     using namespace std;
-
-    auto MakeTriangle()
-    {
-
-        vector<Vector3> positions;
-        vector<Vector3> colors;
-        vector<Vector3> normals;
-
-        const float scale = 1.0f;
-
-        // 윗면
-        positions.push_back(Vector3(0.0f, 0.5f, 0.0f) * scale);
-        positions.push_back(Vector3(0.5f, -0.5f, 0.0f) * scale);
-        positions.push_back(Vector3(-0.5f, -0.5f, 0.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
-
-        vector<Vertex> vertices;
-        for (size_t i = 0; i < positions.size(); i++)
-        {
-            Vertex v;
-            v.position = positions[i];
-            v.color = colors[i];
-            vertices.push_back(v);
-        }
-
-        vector<uint16_t> indices = {
-            0, 1, 2};
-
-        return tuple{vertices, indices};
-    }
 
     Application::Application() : Graphics(), m_indexCount(0) {}
 
@@ -52,16 +18,17 @@ namespace luke
             return false;
 
 #pragma region Geometry 정의
-        auto [vertices, indices] = MakeTriangle();
+        MeshData meshData = MeshGenerator::MakeSquare();
+        m_mesh = std::make_shared<Mesh>();
 #pragma endregion
 
 #pragma region 버텍스 버퍼 만들기
-        Graphics::CreateVertexBuffer(vertices, m_vertexBuffer);
+        Graphics::CreateVertexBuffer(meshData.vertices, m_mesh->m_vertexBuffer);
 #pragma endregion
 
 #pragma region 인덱스 버퍼 만들기
-        m_indexCount = UINT(indices.size());
-        Graphics::CreateIndexBuffer(indices, m_indexBuffer);
+        m_indexCount = UINT(meshData.indices.size());
+        Graphics::CreateIndexBuffer(meshData.indices, m_mesh->m_indexBuffer);
 #pragma endregion
 
 //#pragma region ConstantBuffer 만들기
@@ -131,7 +98,7 @@ namespace luke
         };
         m_context->VSSetConstantBuffers(0, 1, pptr); */
 
-        m_context->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
+        //m_context->VSSetConstantBuffers(0, 1, m_mesh->m_constantBuffer.GetAddressOf());
         m_context->PSSetShader(m_colorPixelShader.Get(), 0, 0);
 
         m_context->RSSetState(m_rasterizerSate.Get());
@@ -140,8 +107,8 @@ namespace luke
         UINT stride = sizeof(Vertex);
         UINT offset = 0;
         m_context->IASetInputLayout(m_colorInputLayout.Get());
-        m_context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
-        m_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+        m_context->IASetVertexBuffers(0, 1, m_mesh->m_vertexBuffer.GetAddressOf(), &stride, &offset);
+        m_context->IASetIndexBuffer(m_mesh->m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
         m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         m_context->DrawIndexed(m_indexCount, 0, 0);
     }
