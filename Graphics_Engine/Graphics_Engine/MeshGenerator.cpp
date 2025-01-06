@@ -84,7 +84,7 @@ namespace luke {
         vector<Vector3> colors;
         vector<Vector3> normals;
 
-        const float scale = 0.5f;
+        const float scale = 1.0f;
 
         // 윗면
         positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);

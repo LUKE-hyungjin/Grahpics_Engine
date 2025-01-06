@@ -288,6 +288,7 @@ namespace luke
         // rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
         rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
         rastDesc.FrontCounterClockwise = false;
+        rastDesc.DepthClipEnable = true; // <- zNear, zFar 확인에 필요
 
         m_device->CreateRasterizerState(&rastDesc, &m_rasterizerSate);
 #pragma endregion

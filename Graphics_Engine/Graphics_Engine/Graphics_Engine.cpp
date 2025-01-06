@@ -8,6 +8,8 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam,
     LPARAM lParam); //imgui 마우스 동작
 
+#define WIDTH 1600
+#define HEIGHT 900
 luke::Application application;
 #define MAX_LOADSTRING 100
 
@@ -116,8 +118,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
-   const UINT width = 1600;
-   const UINT height = 900;
+   const UINT width = WIDTH;
+   const UINT height = HEIGHT;
    // 우리가 원하는 그림이 그려질 부분의 해상도
    RECT wr = { 0, 0, width, height };
 

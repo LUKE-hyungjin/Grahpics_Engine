@@ -9,13 +9,13 @@ namespace luke
 
     using namespace std;
 
-    Application::Application() : Graphics(), m_indexCount(0) {}
+    Application::Application() : Graphics(), m_indexCount(0){}
 
     bool Application::Initialize(HWND hwnd, UINT width, UINT height)
     {
-
         if (!Graphics::Initialize(hwnd, width, height))
             return false;
+        m_aspect = Graphics::GetAspectRatio();
 
 #pragma region Geometry 정의
         MeshData meshData = MeshGenerator::MakeCube();
@@ -55,31 +55,29 @@ namespace luke
 
     void Application::Update(float dt)
     {
-        static float rot = 0.0f;
-        rot += dt;
-
-        // 모델의 변환
-        m_constantBufferData.model = Matrix::CreateScale(0.5f) * Matrix::CreateRotationY(rot) *
-            Matrix::CreateTranslation(Vector3(0.0f, -0.3f, 1.0f));
-        m_constantBufferData.model = m_constantBufferData.model.Transpose();
-
         using namespace DirectX;
 
+        // 모델의 변환
+        m_constantBufferData.model =
+            Matrix::CreateScale(m_modelScaling) * Matrix::CreateRotationY(m_modelRotation.y) *
+            Matrix::CreateRotationX(m_modelRotation.x) * Matrix::CreateRotationZ(m_modelRotation.z) *
+            Matrix::CreateTranslation(m_modelTranslation);
+        m_constantBufferData.model = m_constantBufferData.model.Transpose();
+
         // 시점 변환
-        m_constantBufferData.view =
-            XMMatrixLookAtLH({ 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f });
+        // m_constantBufferData.view = XMMatrixLookAtLH(m_viewEye, m_viewFocus, m_viewUp);
+        m_constantBufferData.view = XMMatrixLookToLH(m_viewEyePos, m_viewEyeDir, m_viewUp);
         m_constantBufferData.view = m_constantBufferData.view.Transpose();
 
         // 프로젝션
-        const float aspect = Graphics::GetAspectRatio();
+        // m_aspect = AppBase::GetAspectRatio(); // <- GUI에서 조절
         if (m_usePerspectiveProjection) {
-            const float fovAngleY = 70.0f * XM_PI / 180.0f;
-            m_constantBufferData.projection =
-                XMMatrixPerspectiveFovLH(fovAngleY, aspect, 0.01f, 100.0f);
+            m_constantBufferData.projection = XMMatrixPerspectiveFovLH(
+                XMConvertToRadians(m_projFovAngleY), m_aspect, m_nearZ, m_farZ);
         }
         else {
             m_constantBufferData.projection =
-                XMMatrixOrthographicOffCenterLH(-aspect, aspect, -1.0f, 1.0f, 0.1f, 10.0f);
+                XMMatrixOrthographicOffCenterLH(-m_aspect, m_aspect, -1.0f, 1.0f, m_nearZ, m_farZ);
         }
         m_constantBufferData.projection = m_constantBufferData.projection.Transpose();
 
@@ -145,6 +143,20 @@ namespace luke
 
     void Application::UpdateGUI()
     {
+        ImGui::Checkbox("usePerspectiveProjection", &m_usePerspectiveProjection);
+
+        ImGui::SliderFloat3("m_modelTranslation", &m_modelTranslation.x, -2.0f, 2.0f);
+        ImGui::SliderFloat3("m_modelRotation(Rad)", &m_modelRotation.x, -3.14f, 3.14f);
+        ImGui::SliderFloat3("m_modelScaling", &m_modelScaling.x, 0.1f, 2.0f);
+
+        ImGui::SliderFloat3("m_viewEyePos", &m_viewEyePos.x, -4.0f, 4.0f);
+        ImGui::SliderFloat3("m_viewEyeDir", &m_viewEyeDir.x, -4.0f, 4.0f);
+        ImGui::SliderFloat3("m_viewUp", &m_viewUp.x, -2.0f, 2.0f);
+
+        ImGui::SliderFloat("m_projFovAngleY(Deg)", &m_projFovAngleY, 10.0f, 180.0f);
+        ImGui::SliderFloat("m_nearZ", &m_nearZ, 0.01f, 10.0f);
+        ImGui::SliderFloat("m_farZ", &m_farZ, 0.01f, 10.0f);
+        ImGui::SliderFloat("m_aspect", &m_aspect, 1.0f, 3.0f);
     }
 
 }
