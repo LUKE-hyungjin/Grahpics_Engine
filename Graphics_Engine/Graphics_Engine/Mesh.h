@@ -12,7 +12,7 @@ namespace luke {
 
         ComPtr<ID3D11Buffer> m_vertexBuffer;
         ComPtr<ID3D11Buffer> m_indexBuffer;
-        //ComPtr<ID3D11Buffer> m_constantBuffer;
+        ComPtr<ID3D11Buffer> m_constantBuffer;
 
         UINT m_indexCount = 0;
     };

@@ -22,5 +22,6 @@ namespace luke {
     public:
         static MeshData MakeTriangle();
         static MeshData MakeSquare();
+        static MeshData MakeCube();
     };
 }

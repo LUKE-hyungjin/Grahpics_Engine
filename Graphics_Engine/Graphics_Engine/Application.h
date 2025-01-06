@@ -15,12 +15,12 @@ namespace luke
     using DirectX::SimpleMath::Matrix;
     using DirectX::SimpleMath::Vector3;
 
-    //struct ModelViewProjectionConstantBuffer
-    //{
-    //    Matrix model;
-    //    Matrix view;
-    //    Matrix projection;
-    //};
+    struct ModelViewProjectionConstantBuffer
+    {
+        Matrix model;
+        Matrix view;
+        Matrix projection;
+    };
 
     class Application : public Graphics
     {
@@ -39,7 +39,7 @@ namespace luke
         std::shared_ptr<Mesh> m_mesh;
         UINT m_indexCount;
 
-        //ModelViewProjectionConstantBuffer m_constantBufferData;
+        ModelViewProjectionConstantBuffer m_constantBufferData;
 
         bool m_usePerspectiveProjection = true;
     };

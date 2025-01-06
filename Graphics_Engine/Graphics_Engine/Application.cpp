@@ -18,7 +18,7 @@ namespace luke
             return false;
 
 #pragma region Geometry 정의
-        MeshData meshData = MeshGenerator::MakeSquare();
+        MeshData meshData = MeshGenerator::MakeCube();
         m_mesh = std::make_shared<Mesh>();
 #pragma endregion
 
@@ -31,12 +31,12 @@ namespace luke
         Graphics::CreateIndexBuffer(meshData.indices, m_mesh->m_indexBuffer);
 #pragma endregion
 
-//#pragma region ConstantBuffer 만들기
-//        m_constantBufferData.model = Matrix();
-//        m_constantBufferData.view = Matrix();
-//        m_constantBufferData.projection = Matrix();
-//        Graphics::CreateConstantBuffer(m_constantBufferData, m_constantBuffer);
-//#pragma endregion
+#pragma region ConstantBuffer 만들기
+        m_constantBufferData.model = Matrix();
+        m_constantBufferData.view = Matrix();
+        m_constantBufferData.projection = Matrix();
+        Graphics::CreateConstantBuffer(m_constantBufferData, m_mesh->m_constantBuffer);
+#pragma endregion
 
 #pragma region 쉐이더 만들기
         vector<D3D11_INPUT_ELEMENT_DESC> inputElements = {
@@ -55,6 +55,36 @@ namespace luke
 
     void Application::Update(float dt)
     {
+        static float rot = 0.0f;
+        rot += dt;
+
+        // 모델의 변환
+        m_constantBufferData.model = Matrix::CreateScale(0.5f) * Matrix::CreateRotationY(rot) *
+            Matrix::CreateTranslation(Vector3(0.0f, -0.3f, 1.0f));
+        m_constantBufferData.model = m_constantBufferData.model.Transpose();
+
+        using namespace DirectX;
+
+        // 시점 변환
+        m_constantBufferData.view =
+            XMMatrixLookAtLH({ 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f });
+        m_constantBufferData.view = m_constantBufferData.view.Transpose();
+
+        // 프로젝션
+        const float aspect = Graphics::GetAspectRatio();
+        if (m_usePerspectiveProjection) {
+            const float fovAngleY = 70.0f * XM_PI / 180.0f;
+            m_constantBufferData.projection =
+                XMMatrixPerspectiveFovLH(fovAngleY, aspect, 0.01f, 100.0f);
+        }
+        else {
+            m_constantBufferData.projection =
+                XMMatrixOrthographicOffCenterLH(-aspect, aspect, -1.0f, 1.0f, 0.1f, 10.0f);
+        }
+        m_constantBufferData.projection = m_constantBufferData.projection.Transpose();
+
+        // Constant를 CPU에서 GPU로 복사
+        Graphics::UpdateBuffer(m_constantBufferData, m_mesh->m_constantBuffer);
     }
 
     void Application::Render()
@@ -98,7 +128,7 @@ namespace luke
         };
         m_context->VSSetConstantBuffers(0, 1, pptr); */
 
-        //m_context->VSSetConstantBuffers(0, 1, m_mesh->m_constantBuffer.GetAddressOf());
+        m_context->VSSetConstantBuffers(0, 1, m_mesh->m_constantBuffer.GetAddressOf());
         m_context->PSSetShader(m_colorPixelShader.Get(), 0, 0);
 
         m_context->RSSetState(m_rasterizerSate.Get());
